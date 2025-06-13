@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PicturePuzzleSceneDirector : MonoBehaviour
 {
@@ -8,14 +9,27 @@ public class PicturePuzzleSceneDirector : MonoBehaviour
     [SerializeField] List<GameObject> pieces;
     // ピースのシャッフル回数
     [SerializeField] int shuffleCount;
+    // 結果パネル
+    [SerializeField] GameObject panelResult;
+    // サウンド
+    [SerializeField] AudioClip seClick;
     // 初期位置
     List<Vector2> startPositions;
     // 選択しているピース
     GameObject selectPiece;
 
+    // サウンド
+    AudioSource audioSource;
+
     // Start is called before the first frame update
     void Start()
     {
+        // リザルト画面非表示
+        panelResult.SetActive(false);
+
+        // サウンド
+        audioSource = GetComponent<AudioSource>();
+
         // 初期位置保存
         startPositions = new List<Vector2>();
 
@@ -43,6 +57,8 @@ public class PicturePuzzleSceneDirector : MonoBehaviour
         // ピースを入れ替える
         if (Input.GetMouseButtonUp(0))
         {
+            // SE再生
+            audioSource.PlayOneShot(seClick);
             // タッチした場所にレイを飛ばす
             Vector2 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             // 第２引数はレイがどの方向に進むか(zeroにすると指定された点)
@@ -67,7 +83,7 @@ public class PicturePuzzleSceneDirector : MonoBehaviour
                 // 2枚目は位置を入れ替えて、選択状態を解除
                 else
                 {
-                    Vector2 position =hitPiece.transform.position;
+                    Vector2 position = hitPiece.transform.position;
                     hitPiece.transform.position = selectPiece.transform.position;
                     selectPiece.transform.position = position;
                     selectPiece = null;
@@ -75,7 +91,10 @@ public class PicturePuzzleSceneDirector : MonoBehaviour
                     // クリア判定
                     if (IsClear())
                     {
-                        print("クリア！");
+                        panelResult.SetActive(true);
+
+                        // Updateを停止
+                        enabled = false;
                     }
                 }
             }
@@ -97,5 +116,10 @@ public class PicturePuzzleSceneDirector : MonoBehaviour
         }
 
         return true;
+    }
+
+    public void OnClickRetryButton()
+    {
+        SceneManager.LoadScene("PicturePuzzleScene");
     }
 }
